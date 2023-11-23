@@ -1,10 +1,11 @@
-const express = require("express");
 const dotenv = require("dotenv");
+
 dotenv.config({ path: "config.env" });
+const express = require("express");
 const morgan = require("morgan");
-const mongoose = require("mongoose");
 const dbConnection = require("./config/database");
 const categoryRoute = require("./routes/categoryRoute");
+const subCategoryRoute = require("./routes/subCategoryRoute");
 const globalError = require("./middlewares/errorMiddleware");
 const ApiError = require("./utils/ApiError");
 
@@ -24,6 +25,7 @@ if (process.env.NODE_ENV === "development") {
 
 //Mount Routes.
 app.use("/api/v1/categories", categoryRoute);
+app.use("/api/v1/subcategories", subCategoryRoute);
 
 app.all("*", (req, res, next) => {
   next(new ApiError(`can't find this Route ${req.originalUrl}`, 400));

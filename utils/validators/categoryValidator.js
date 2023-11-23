@@ -8,7 +8,7 @@ exports.getCategoryValidator = [
 
 exports.CreateCategoryValidator = [
   check("name")
-    .isEmpty()
+    .notEmpty()
     .withMessage("Category is required")
     .isLength({ min: 3 })
     .withMessage("Too short category name")
