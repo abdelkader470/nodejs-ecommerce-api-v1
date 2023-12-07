@@ -1,8 +1,10 @@
+const path = require("path");
 const dotenv = require("dotenv");
+const morgan = require("morgan");
 
 dotenv.config({ path: "config.env" });
 const express = require("express");
-const morgan = require("morgan");
+
 const dbConnection = require("./config/database");
 const categoryRoute = require("./routes/categoryRoute");
 const subCategoryRoute = require("./routes/subCategoryRoute");
@@ -19,6 +21,7 @@ const app = express();
 
 //Middleware
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "uploads")));
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
