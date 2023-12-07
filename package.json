@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start:dev": "nodemon server.js",
-    "start:prod": "node server.js"
+    "start": "node server.js"
   },
   "engines": {
     "node": "18.17.1"
