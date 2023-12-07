@@ -69,9 +69,6 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    numberOnStock: {
-      type: Number,
-    },
     height: {
       type: Number,
     },
@@ -81,6 +78,15 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+productSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "category",
+    select: "name -_id",
+  });
+  next();
+});
+
 // 2- create Model
 const ProductModel = mongoose.model("Product", productSchema);
 

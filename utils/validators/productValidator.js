@@ -13,6 +13,10 @@ exports.createProductValidator = [
     .custom((val, { req }) => {
       req.body.slug = slugify(val);
       return true;
+    })
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val);
+      return true;
     }),
   check("description")
     .notEmpty()
@@ -24,6 +28,14 @@ exports.createProductValidator = [
     .withMessage("Product quantity is required")
     .isNumeric()
     .withMessage("Product quantity must be a number"),
+  check("width")
+    .optional()
+    .isNumeric()
+    .withMessage("Product width must be a number"),
+  check("height")
+    .optional()
+    .isNumeric()
+    .withMessage("Product height must be a number"),
   check("sold")
     .optional()
     .isNumeric()
@@ -56,6 +68,14 @@ exports.createProductValidator = [
     .optional()
     .isArray()
     .withMessage("images should be array of string"),
+  check("size")
+    .optional()
+    .isArray()
+    .withMessage("size should be array of string"),
+  check("type")
+    .optional()
+    .isArray()
+    .withMessage("type should be array of string"),
   check("category")
     .notEmpty()
     .withMessage("Product must be belong to a category")
