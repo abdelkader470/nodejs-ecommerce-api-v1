@@ -38,11 +38,13 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
     colors: [String],
+    size: [String],
     imageCover: {
       type: String,
       required: [true, "Product image Cover is required"],
     },
     images: [String],
+    type: [String],
     category: {
       type: mongoose.Schema.ObjectId,
       ref: "Category",
@@ -66,6 +68,15 @@ const productSchema = new mongoose.Schema(
     ratingsQuantity: {
       type: Number,
       default: 0,
+    },
+    numberOnStock: {
+      type: Number,
+    },
+    height: {
+      type: Number,
+    },
+    width: {
+      type: Number,
     },
   },
   { timestamps: true }
