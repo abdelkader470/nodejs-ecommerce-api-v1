@@ -34,7 +34,7 @@ router
   .get(getCategoryValidator, getcategory)
   .put(
     uploadCategoryImage,
-    // resizeImage,
+    resizeImage,
     updateCategoryValidator,
     updateCategory
   )
