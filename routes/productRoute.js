@@ -6,7 +6,7 @@ const {
   updateProduct,
   deleteProduct,
   uploadProductImages,
-  resizeProductImages,
+  // resizeProductImages,
 } = require("../services/productSevices");
 const {
   getProductValidator,
@@ -22,7 +22,7 @@ router
   .get(getProducts)
   .post(
     uploadProductImages,
-    resizeProductImages,
+    // resizeProductImages,
     createProductValidator,
     createProduct
   );
@@ -31,7 +31,7 @@ router
   .get(getProductValidator, getProduct)
   .put(
     uploadProductImages,
-    resizeProductImages,
+    // resizeProductImages,
     updateProductValidator,
     updateProduct
   )
