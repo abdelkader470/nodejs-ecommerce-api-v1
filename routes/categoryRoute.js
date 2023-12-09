@@ -26,6 +26,7 @@ router
   .get(getCategories)
   .post(
     authSevices.protect,
+    authSevices.allowedTo("admin", "manager"),
     uploadCategoryImage,
     resizeImage,
     CreateCategoryValidator,
@@ -35,10 +36,17 @@ router
   .route("/:id")
   .get(getCategoryValidator, getcategory)
   .put(
+    authSevices.protect,
+    authSevices.allowedTo("admin", "manager"),
     uploadCategoryImage,
     resizeImage,
     updateCategoryValidator,
     updateCategory
   )
-  .delete(deleteCategoryValidator, deleteCategory);
+  .delete(
+    authSevices.protect,
+    authSevices.allowedTo("admin"),
+    deleteCategoryValidator,
+    deleteCategory
+  );
 module.exports = router;

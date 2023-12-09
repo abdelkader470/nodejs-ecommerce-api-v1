@@ -15,14 +15,32 @@ const {
   createSubCategoryValidator,
 } = require("../utils/validators/subCategoryValidator");
 
+const authSevices = require("../services/authServices");
+
 const router = express.Router({ margeParams: true });
 router
   .route("/")
   .get(createFilterObj, getSubCategories)
-  .post(setCategoryIdToBady, createSubCategoryValidator, createSubCategory);
+  .post(
+    authSevices.protect,
+    authSevices.allowedTo("admin", "manager"),
+    setCategoryIdToBady,
+    createSubCategoryValidator,
+    createSubCategory
+  );
 router
   .route("/:id")
   .get(getSubCategoryValidator, getSubcategory)
-  .put(updateSubCategoryValidator, updateSubCategory)
-  .delete(deleteSubCategoryValidator, deleteSubCategory);
+  .put(
+    authSevices.protect,
+    authSevices.allowedTo("admin", "manager"),
+    updateSubCategoryValidator,
+    updateSubCategory
+  )
+  .delete(
+    authSevices.protect,
+    authSevices.allowedTo("admin"),
+    deleteSubCategoryValidator,
+    deleteSubCategory
+  );
 module.exports = router;
