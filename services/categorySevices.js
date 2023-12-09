@@ -1,11 +1,18 @@
 const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require("express-async-handler");
+const {
+  getStorage,
+  ref,
+  getDowmloadURL,
+  uploadBytesResumable,
+} = require("firebase/storage");
 const sharp = require("sharp");
 const Category = require("../models/categoryModel");
 const factory = require("./handlersFactory");
-
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 
+// initializeApp(config.firebaseConfig);
+// const storage = getStorage();
 //upload single images
 exports.uploadCategoryImage = uploadSingleImage("image");
 //image processing

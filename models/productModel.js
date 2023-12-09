@@ -38,13 +38,19 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
     colors: [String],
-    size: [String],
+    size: {
+      type: String,
+      enum: ["xs", "m", "lg", "xxlg", "xlg", "3xlg"],
+    },
     imageCover: {
       type: String,
       required: [true, "Product image Cover is required"],
     },
     images: [String],
-    type: [String],
+    type: {
+      type: String,
+      enum: ["men", "child", "woman"],
+    },
     category: {
       type: mongoose.Schema.ObjectId,
       ref: "Category",
