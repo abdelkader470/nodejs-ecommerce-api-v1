@@ -5,11 +5,8 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/userModel");
 const ApiError = require("../utils/ApiError");
 const sendEmail = require("../utils/sendEmail");
+const createToken = require("../utils/createToken");
 
-const createToken = (payload) =>
-  jwt.sign({ userId: payload }, process.env.JWT_SECRET_KEY, {
-    expiresIn: process.env.JWT_EXPIRE_TIME,
-  });
 // @desc     Signup
 // @route    Get /api/v1/auth/signup
 // @access   public
@@ -57,7 +54,13 @@ exports.protect = asyncHandler(async (req, res, next) => {
       new ApiError("the user that belongs to this token does not exist", 401)
     );
   }
-  //4) check if the user change his password after token created
+  // 4)
+  if (!currentUser.active) {
+    return next(
+      new ApiError("the user that belongs to this token deactived", 401)
+    );
+  }
+  //5) check if the user change his password after token created
   if (currentUser.passwordChangedAt) {
     const passChangeTimestamp = parseInt(
       currentUser.passwordChangedAt.getTime() / 1000,
@@ -125,4 +128,48 @@ exports.forgetPassword = asyncHandler(async (req, res, next) => {
   res
     .status(200)
     .json({ status: "Success", message: "Reset code send to email" });
+});
+// @desc     verify Password reset code
+// @route    Post /api/v1/auth/verifyResetCode
+// @access   public
+exports.verifyPasswordResetCode = asyncHandler(async (req, res, next) => {
+  const hashResetCode = crypto
+    .createHash("sha256")
+    .update(req.body.resetCode)
+    .digest("hex");
+  const user = await User.findOne({
+    passwordResetCode: hashResetCode,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    return next(new ApiError("Reset code invalid or expired"));
+  }
+  user.passwordResetVerified = true;
+  await user.save();
+  res.status(200).json({ status: "Success" });
+});
+// @desc     reset Password
+// @route    put /api/v1/auth/resetPassword
+// @access   public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  // 1) get user based on email
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(
+      new ApiError(`There is no user with this email ${req.body.email}`, 404)
+    );
+  }
+  // 2) check if the reset code verified
+  if (!user.passwordResetVerified) {
+    return next(new ApiError(`Reset code not verified`, 400));
+  }
+  user.password = req.body.newPassword;
+  user.passwordResetCode = undefined;
+  user.passwordResetExpires = undefined;
+  user.passwordResetVerified = undefined;
+  await user.save();
+
+  // 3) if everything is ok generate token
+  const token = createToken(user._id);
+  res.status(200).json({ token });
 });

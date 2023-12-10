@@ -6,7 +6,7 @@ const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const factory = require("./handlersFactory");
 const User = require("../models/userModel");
 const ApiError = require("../utils/ApiError");
-
+const createToken = require("../utils/createToken");
 //upload single images
 exports.uploadUserImage = uploadSingleImage("profileImg");
 //image processing
@@ -77,3 +77,62 @@ exports.changeUserPassword = asyncHandler(async (req, res, next) => {
 // @route    Delete /api/v1/users/:id
 // @access   private
 exports.deleteUser = factory.deleteOne(User);
+// @desc      Get logged User Data
+// @route    Get /api/v1/users/getMe
+// @access   private/protect
+exports.getLoggedUserData = asyncHandler(async (req, res, next) => {
+  req.params.id = req.user._id;
+  next();
+});
+// @desc      Update logged User password
+// @route    Update /api/v1/users/updateMyPassword
+// @access   private/protect
+exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      password: await bcrypt.hash(req.body.password, 12),
+      passwordChangedAt: Date.now(),
+    },
+    {
+      new: true,
+    }
+  );
+  const token = createToken(user._id);
+  res.status(200).json({ date: user, token });
+});
+// @desc      Update logged User Data without (password ,role)
+// @route     Update /api/v1/users/updateMe
+// @access   private/protect
+exports.updateLoggedUserData = asyncHandler(async (req, res, next) => {
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+    },
+    {
+      new: true,
+    }
+  );
+  res.status(200).json({ date: updatedUser });
+});
+// @desc      Deactived logged User
+// @route     Delete /api/v1/users/deleteMe
+// @access   private/protect
+exports.deactivedLoggedUser = asyncHandler(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user._id, { active: false }, { new: true });
+  res.status(204).json({ status: "Success" });
+});
+// @desc      active logged User
+// @route     put /api/v1/users/activeMe
+// @access   private/protect
+exports.activeLoggedUserData = asyncHandler(async (req, res, next) => {
+  const activeUser = await User.findByIdAndUpdate(
+    req.params.id,
+    { active: true },
+    { new: true }
+  );
+  res.status(200).json({ date: activeUser });
+});

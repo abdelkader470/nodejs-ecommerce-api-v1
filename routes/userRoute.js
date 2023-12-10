@@ -8,6 +8,11 @@ const {
   uploadUserImage,
   resizeImage,
   changeUserPassword,
+  getLoggedUserData,
+  updateLoggedUserPassword,
+  updateLoggedUserData,
+  deactivedLoggedUser,
+  activeLoggedUserData,
 } = require("../services/userServices");
 const {
   getUserValidator,
@@ -15,6 +20,7 @@ const {
   deleteUserValidator,
   CreateUserValidator,
   changeUserPasswordValidator,
+  updateLoggedUserValidator,
 } = require("../utils/validators/userValidator");
 
 const authSevices = require("../services/authServices");
@@ -26,6 +32,22 @@ router.put(
   changeUserPasswordValidator,
   changeUserPassword
 );
+
+router.get("/getMe", authSevices.protect, getLoggedUserData, getUser);
+
+router.put("/changeMePassword", authSevices.protect, updateLoggedUserPassword);
+
+router.delete("/deactivedMe", authSevices.protect, deactivedLoggedUser);
+
+router.put("/activeMe/:id", activeLoggedUserData);
+
+router.put(
+  "/updateMe",
+  authSevices.protect,
+  updateLoggedUserValidator,
+  updateLoggedUserData
+);
+
 router
   .route("/")
   .get(authSevices.protect, authSevices.allowedTo("admin", "manager"), getUsers)
