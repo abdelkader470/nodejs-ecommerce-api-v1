@@ -1,8 +1,10 @@
+const crypto = require("crypto");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/userModel");
 const ApiError = require("../utils/ApiError");
+const sendEmail = require("../utils/sendEmail");
 
 const createToken = (payload) =>
   jwt.sign({ userId: payload }, process.env.JWT_SECRET_KEY, {
@@ -82,3 +84,45 @@ exports.allowedTo = (...roles) =>
     }
     next();
   });
+// @desc     Forget Password
+// @route    Post /api/v1/auth/forgetPassword
+// @access   public
+exports.forgetPassword = asyncHandler(async (req, res, next) => {
+  // 1) get user by email
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(
+      new ApiError(`there is no user with that email ${req.body.email}`, 404)
+    );
+  }
+  // 2) if user exist, Generate hash reset random 6 digits and save it in db
+  const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const hashResetCode = crypto
+    .createHash("sha256")
+    .update(resetCode)
+    .digest("hex");
+  // save the hash password reset code into db
+  user.passwordResetCode = hashResetCode;
+  // add expiration time for password reset code (10 minutes)
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  user.passwordResetVerified = false;
+  await user.save();
+  // 3) send the reset code via email
+  const message = `Hi ${user.name},\nWe received a request to reset the password on your E-commerce Account. \n${resetCode}\nEnter this code to complate the reset.\nThanks for helping us keep your account secure. \nThe E-commerce Team.`;
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "your password reset code (valid for 10 min)",
+      message: message,
+    });
+  } catch (err) {
+    user.passwordResetCode = undefined;
+    user.passwordResetExpires = undefined;
+    user.passwordResetVerified = undefined;
+    await user.save();
+    return next(new ApiError("there is an error in sending email", 500));
+  }
+  res
+    .status(200)
+    .json({ status: "Success", message: "Reset code send to email" });
+});
