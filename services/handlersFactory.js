@@ -23,10 +23,14 @@ exports.getAll = (model, modelName = "") =>
       .status(200)
       .json({ result: documents.length, paginationResult, data: documents });
   });
-exports.getOne = (model) =>
+exports.getOne = (model, populationOpt) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const document = await model.findById(id);
+    let query = model.findById(id);
+    if (populationOpt) {
+      query = query.populate(populationOpt);
+    }
+    const document = await query;
     if (!document) {
       return next(new ApiError(`No document for this id ${id}`, 404));
     }
