@@ -1,6 +1,5 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
-const ApiError = require("../utils/ApiError");
 
 // @desc     Add Product To Wishlist
 // @route    Post /api/v1/wishlist
@@ -41,11 +40,9 @@ exports.removeProductFromWishlist = asyncHandler(async (req, res, next) => {
 // @access   prodtected/User
 exports.getLoggedUserWishlist = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id).populate("wishlist");
-  res
-    .status(200)
-    .json({
-      status: "success",
-      result: user.wishlist.length,
-      data: user.wishlist,
-    });
+  res.status(200).json({
+    status: "success",
+    result: user.wishlist.length,
+    data: user.wishlist,
+  });
 });
