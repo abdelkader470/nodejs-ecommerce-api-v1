@@ -59,8 +59,8 @@ exports.deleteOne = (model) =>
     const { id } = req.params;
     const document = await model.findByIdAndDelete(id);
     if (!document) {
-      return next(new ApiError(`No Brand for this id ${id}`, 404));
+      return next(new ApiError(`No document for this id ${id}`, 404));
     }
-    document.remove();
+    document.deleteOne();
     res.status(204).send();
   });
