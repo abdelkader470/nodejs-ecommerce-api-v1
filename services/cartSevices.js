@@ -12,8 +12,8 @@ const calcTotalCartPrice = (cart) => {
   return totalPrice;
 };
 // @desc      create a new Cart
-// @route     Post /api/v1/carts
-// @access   private
+// @route     Post /api/v1/cart
+// @access   private/user
 exports.addProductToCart = asyncHandler(async (req, res, next) => {
   const { productId, color } = req.body;
   const product = await Product.findById(productId);
@@ -46,6 +46,22 @@ exports.addProductToCart = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: "product Added to cart successfully",
+    data: cart,
+  });
+});
+// @desc      Get logged user cart
+// @route     Post /api/v1/cart
+// @access   private/user
+exports.getLoggedUserCart = asyncHandler(async (req, res, next) => {
+  const cart = await Cart.findOne({ user: req.user._id });
+  if (!cart) {
+    return next(
+      new ApiError(`There is no cart for this user id :${req.user._id}`, 404)
+    );
+  }
+  res.status(200).json({
+    status: "success",
+    numberOfCartItems: cart.cartItems.length,
     data: cart,
   });
 });

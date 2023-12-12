@@ -1,12 +1,15 @@
 const express = require("express");
-const { addProductToCart } = require("../services/cartSevices");
+const {
+  addProductToCart,
+  getLoggedUserCart,
+} = require("../services/cartSevices");
 
 const authSevices = require("../services/authServices");
 
 const router = express.Router();
 
-router
-  .route("/")
-  .post(authSevices.protect, authSevices.allowedTo("user"), addProductToCart);
+router.use(authSevices.protect, authSevices.allowedTo("user"));
+
+router.route("/").get(getLoggedUserCart).post(addProductToCart);
 
 module.exports = router;
