@@ -94,3 +94,33 @@ exports.clearCart = asyncHandler(async (req, res, next) => {
   await Cart.findOneAndDelete({ user: req.user._id });
   res.status(204).send();
 });
+// @desc      update cart item quantity
+// @route     put /api/v1/cart/:itemId
+// @access   private/user
+exports.updateCartItemQuantity = asyncHandler(async (req, res, next) => {
+  const { quantity, color } = req.body;
+  const cart = await Cart.findOne({ user: req.user._id });
+  if (!cart) {
+    return next(new ApiError(`There is no cart for user ${req.user._id}`, 404));
+  }
+  const itemIndex = cart.cartItems.findIndex(
+    (item) => item._id.toString() === req.params.itemId
+  );
+  if (itemIndex > -1) {
+    const cartItem = cart.cartItems[itemIndex];
+    cartItem.quantity = quantity;
+    cartItem.color = color;
+    cart.cartItems[itemIndex] = cartItem;
+  } else {
+    return next(
+      new ApiError(`There is no item for this id ${req.params.itemId}`, 404)
+    );
+  }
+  calcTotalCartPrice(cart);
+  await cart.save();
+  res.status(200).json({
+    status: "success",
+    numberOfCartItems: cart.cartItems.length,
+    data: cart,
+  });
+});
