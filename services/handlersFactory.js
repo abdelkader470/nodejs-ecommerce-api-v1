@@ -51,6 +51,7 @@ exports.updateOne = (model) =>
         new ApiError(`No document for this id ${req.params.id}`, 404)
       );
     }
+    document.save();
     res.status(200).json({ data: document });
   });
 exports.deleteOne = (model) =>
@@ -60,5 +61,6 @@ exports.deleteOne = (model) =>
     if (!document) {
       return next(new ApiError(`No Brand for this id ${id}`, 404));
     }
+    document.remove();
     res.status(204).send();
   });
