@@ -1,8 +1,6 @@
 const SubCategory = require("../models/subCategoryModel");
 const factory = require("./handlersFactory");
-// @desc      Get All Sub Categories
-// @route    Get /api/v1/subcategories
-// @access   public
+
 exports.setCategoryIdToBady = (req, res, next) => {
   //Nested Route (Create)
   if (!req.body.category) req.body.category = req.params.categoryId;
@@ -16,6 +14,9 @@ exports.createFilterObj = (req, res, next) => {
   req.filterObj = filterObject;
   next();
 };
+// @desc      Get All Sub Categories
+// @route    Get /api/v1/subcategories
+// @access   public
 exports.getSubCategories = factory.getAll(SubCategory);
 // @desc      Get Specific Sub  Categories
 // @route    Get /api/v1/subcategories/:id
