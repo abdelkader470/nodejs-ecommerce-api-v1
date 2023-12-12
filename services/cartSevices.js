@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/ApiError");
 const Cart = require("../models/cartModel");
 const Product = require("../models/productModel");
+const Coupon = require("../models/couponModel");
 
 const calcTotalCartPrice = (cart) => {
   let totalPrice = 0;
@@ -9,6 +10,7 @@ const calcTotalCartPrice = (cart) => {
     totalPrice += item.price * item.quantity;
   });
   cart.totalCartPrice = totalPrice;
+  cart.totalPriceAfterDiscount = undefined;
   return totalPrice;
 };
 // @desc      create a new Cart
@@ -98,7 +100,7 @@ exports.clearCart = asyncHandler(async (req, res, next) => {
 // @route     put /api/v1/cart/:itemId
 // @access   private/user
 exports.updateCartItemQuantity = asyncHandler(async (req, res, next) => {
-  const { quantity, color } = req.body;
+  const { quantity } = req.body;
   const cart = await Cart.findOne({ user: req.user._id });
   if (!cart) {
     return next(new ApiError(`There is no cart for user ${req.user._id}`, 404));
@@ -109,7 +111,6 @@ exports.updateCartItemQuantity = asyncHandler(async (req, res, next) => {
   if (itemIndex > -1) {
     const cartItem = cart.cartItems[itemIndex];
     cartItem.quantity = quantity;
-    cartItem.color = color;
     cart.cartItems[itemIndex] = cartItem;
   } else {
     return next(
@@ -118,6 +119,37 @@ exports.updateCartItemQuantity = asyncHandler(async (req, res, next) => {
   }
   calcTotalCartPrice(cart);
   await cart.save();
+  res.status(200).json({
+    status: "success",
+    numberOfCartItems: cart.cartItems.length,
+    data: cart,
+  });
+});
+// @desc      Apply coupon to logged user cart
+// @route     put /api/v1/cart/applyCoupon
+// @access   private/user
+exports.applyCoupon = asyncHandler(async (req, res, next) => {
+  // 1) get coupon based on coupon name
+  const coupon = await Coupon.findOne({
+    name: req.body.coupon,
+    expire: { $gt: Date.now() },
+  });
+  if (!coupon) {
+    return next(new ApiError("Coupon is invalid or expired"));
+  }
+  // 2) get logged user cart to get total price
+  const cart = await Cart.findOne({ user: req.user._id });
+  const totalPrice = cart.totalCartPrice;
+
+  // 3) calculate price  after priceAfterPrice
+  const totalPriceAfterDiscount = (
+    totalPrice -
+    (totalPrice * coupon.discount) / 100
+  ).toFixed(2);
+
+  cart.totalPriceAfterDiscount = totalPriceAfterDiscount;
+  await cart.save();
+
   res.status(200).json({
     status: "success",
     numberOfCartItems: cart.cartItems.length,
