@@ -52,3 +52,33 @@ exports.getAllOrders = factory.getAll(Order);
 // @route     Get /api/v1/orders/:id
 // @access   private/user-Admin-manager
 exports.getSpecificOrder = factory.getOne(Order);
+// @desc      Update Order paid status to paid
+// @route     Put /api/v1/orders/:id/pay
+// @access   private/Admin-manager
+exports.updateOrderToPaid = asyncHandler(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    return next(
+      new ApiError(`There is no such order with this id:${req.params.id}`, 404)
+    );
+  }
+  order.isPaid = true;
+  order.paidAt = Date.now();
+  const updateOrder = await order.save();
+  res.status(200).json({ status: "success", data: updateOrder });
+});
+// @desc      Update Order Delivered status
+// @route     Put /api/v1/orders/:id/deliver
+// @access   private/Admin-manager
+exports.updateOrderToDelivered = asyncHandler(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    return next(
+      new ApiError(`There is no such order with this id:${req.params.id}`, 404)
+    );
+  }
+  order.isDelivered = true;
+  order.DeliveredAt = Date.now();
+  const updateOrder = await order.save();
+  res.status(200).json({ status: "success", data: updateOrder });
+});
