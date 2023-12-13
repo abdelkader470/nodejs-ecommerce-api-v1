@@ -13,6 +13,7 @@ const dbConnection = require("./config/database");
 
 //Routes
 const mountRoutes = require("./routes");
+const webhookCheckout = require("./services/orderSevices");
 
 // connect with db
 dbConnection();
@@ -26,6 +27,14 @@ app.options("*", cors());
 
 // compress all responses
 app.use(compression());
+
+//checkout webhooh
+app.post(
+  "/webhooh-checkout",
+  express.raw({ type: "application/json" }),
+  webhookCheckout
+);
+
 //Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "uploads")));
