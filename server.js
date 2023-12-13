@@ -3,6 +3,8 @@ const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+const cors = require("cors");
+const compression = require("compression");
 
 dotenv.config({ path: "config.env" });
 const ApiError = require("./utils/ApiError");
@@ -18,6 +20,12 @@ dbConnection();
 // express app
 const app = express();
 
+// Enable other demains to assess your application
+app.use(cors());
+app.options("*", cors());
+
+// compress all responses
+app.use(compression());
 //Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "uploads")));
