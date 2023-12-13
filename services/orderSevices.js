@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/ApiError");
+const factory = require("./handlersFactory");
 const Order = require("../models/orderModel");
 const Cart = require("../models/cartModel");
 const Product = require("../models/productModel");
@@ -40,3 +41,15 @@ exports.createCashOrder = asyncHandler(async (req, res, next) => {
   }
   res.status(201).json({ status: "success", data: order });
 });
+exports.filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
+  if (req.user.role === "user") req.filerObj = { user: req.user._id };
+  next();
+});
+// @desc      Get All Orders
+// @route     Get /api/v1/orders
+// @access   private/user-Admin-manager
+exports.getAllOrders = factory.getAll(Order);
+// @desc      Get Specific Order
+// @route     Get /api/v1/orders/:id
+// @access   private/user-Admin-manager
+exports.getSpecificOrder = factory.getOne(Order);
