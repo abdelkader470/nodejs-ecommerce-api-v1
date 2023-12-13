@@ -62,6 +62,9 @@ const setImageUrl = (doc) => {
     if (process.env.NODE_ENV === "development") {
       const imageUrl = `${process.env.DEV_URL}/users/${doc.profileImg}`;
       doc.profileImg = imageUrl;
+    } else {
+      const imageUrl = `${process.env.BASE_URL}/users/${doc.profileImg}`;
+      doc.profileImg = imageUrl;
     }
   }
 };
