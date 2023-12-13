@@ -1,3 +1,4 @@
+const stripe = require("stripe")(process.env.STRIPE_SECERT);
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/ApiError");
 const factory = require("./handlersFactory");
@@ -81,4 +82,44 @@ exports.updateOrderToDelivered = asyncHandler(async (req, res, next) => {
   order.DeliveredAt = Date.now();
   const updateOrder = await order.save();
   res.status(200).json({ status: "success", data: updateOrder });
+});
+// @desc      Get Checkout session from stripe and send it as response
+// @route     Get /api/v1/orders/checkout-session/cartId
+// @access   private/user
+exports.checkoutSession = asyncHandler(async (req, res, next) => {
+  //app Settings
+  const taxPrice = 0;
+  const shippingPrice = 0;
+  // 1) Get cart depand on cartId
+  const cart = await Cart.findById(req.params.cartId);
+  if (!cart) return next(new ApiError("There is no cart for this id", 404));
+  // 2) Get Order price depand on cart price "check if coupon apply"
+  const cartPrice = cart.totalPriceAfterDiscount
+    ? cart.totalPriceAfterDiscount
+    : cart.totalCartPrice;
+  const totalOrderPrice = cartPrice + taxPrice + shippingPrice;
+  // 3) create stripe checkout session
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items: [
+      {
+        price_data: {
+          currency: "egp",
+          product_data: {
+            name: req.user.name,
+          },
+          unit_amount: totalOrderPrice * 100,
+        },
+        quantity: 1,
+      },
+    ],
+    mode: "payment",
+    success_url: `${req.protocol}://${req.get("host")}/orders`,
+    cancel_url: `${req.protocol}://${req.get("host")}/cart`,
+    customer_email: req.user.email,
+    client_reference_id: req.params.cartId,
+    metadata: req.body.shippingAddress,
+  });
+  // 4) send session to response
+  res.status(200).json({ status: "success", data: session });
 });
