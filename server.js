@@ -13,7 +13,7 @@ const dbConnection = require("./config/database");
 
 //Routes
 const mountRoutes = require("./routes");
-const webhookCheckout = require("./services/orderSevices");
+const { webhookCheckout } = require("./services/orderSevices");
 
 // connect with db
 dbConnection();
@@ -30,7 +30,7 @@ app.use(compression());
 
 //checkout webhooh
 app.post(
-  "/webhooh-checkout",
+  "/webhook-checkout",
   express.raw({ type: "application/json" }),
   webhookCheckout
 );
