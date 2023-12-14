@@ -5,6 +5,7 @@ const factory = require("./handlersFactory");
 const Cart = require("../models/cartModel");
 const Product = require("../models/productModel");
 const Order = require("../models/orderModel");
+const User = require("../models/userModel");
 // @desc      create cash Order
 // @route    Post /api/v1/orders/:cartId
 // @access   private/user
@@ -123,6 +124,39 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
   // 4) send session to response
   res.status(200).json({ status: "success", data: session });
 });
+const createCardOrder = async (session) => {
+  const cartId = session.client_reference_id;
+  const shippingAddress = session.metadata;
+  const orderPrice = session.price_data[0].unit_amount / 100;
+  const cart = await Cart.findById(cartId);
+  const user = await User.findOne({ email: session.customer_email });
+
+  //create order
+  const order = await Order.create({
+    user: user._id,
+    cartItems: cart.cartItems,
+    shippingAddress,
+    totalOrderPrice: orderPrice,
+    isPaid: true,
+    paidAt: Date.now(),
+    paymentMethodType: "card",
+  });
+  //4) After creating the order, decrement product quantity, increment product sold
+  if (order) {
+    const bulkOption = cart.cartItems.map((item) => ({
+      updateOne: {
+        filter: { _id: item.product },
+        update: { $inc: { quantity: -item.quantity, sold: +item.quantity } },
+      },
+    }));
+    await Product.bulkWrite(bulkOption, {});
+    // 5) clear cart depand on cartId
+    await Cart.findByIdAndDelete(cartId);
+  }
+};
+// @desc      this webhook will run when stripe payment success paid
+// @route     post /webhook-checkout
+// @access   private/user
 exports.webhookCheckout = asyncHandler(async (req, res, next) => {
   const sig = req.headers["stripe-signature"];
   let event;
@@ -136,6 +170,7 @@ exports.webhookCheckout = asyncHandler(async (req, res, next) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
   if (event.type === "checkout.session.completed") {
-    console.log("Create Order Here ....");
+    createCardOrder(event.data.object);
   }
+  res.status(200).json({ received: true });
 });
