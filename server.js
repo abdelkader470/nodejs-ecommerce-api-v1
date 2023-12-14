@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 const cors = require("cors");
 const compression = require("compression");
+const { rateLimit } = require("express-rate-limit");
+const hpp = require("hpp");
 
 dotenv.config({ path: "config.env" });
 const ApiError = require("./utils/ApiError");
@@ -36,13 +38,35 @@ app.post(
 );
 
 //Middleware
-app.use(express.json());
+app.use(express.json({ limit: "20kb" }));
 app.use(express.static(path.join(__dirname, "uploads")));
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
   console.log(`mode: ${process.env.NODE_ENV}`);
 }
+
+// Limit each IP to 100 requests per `window` (here, per 15 minutes).
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 200,
+  message: "too many requests from this IP, please try again after 15 minutes",
+});
+// Apply the rate limiting middleware to all requests.
+app.use("/api", limiter);
+
+//middleware to protect against HTTP Parameter Pollution attacks
+app.use(
+  hpp({
+    whitelist: [
+      "price",
+      "sold",
+      "quantity",
+      "ratingsAverage",
+      "ratingsQuantity",
+    ],
+  })
+);
 
 //Mount Routes.
 mountRoutes(app);
