@@ -13,11 +13,11 @@ exports.uploadProductImages = uploadMixOfImages([
 exports.resizeProductImages = asyncHandler(async (req, res, next) => {
   //1-image processing for image cover
   if (req.files.imageCover) {
-    const imageCoverFileName = `product-${uuidv4()}-${Date.now()}-cover.jpeg`;
+    const imageCoverFileName = `product-${uuidv4()}-${Date.now()}-cover.png`;
     await sharp(req.files.imageCover[0].buffer)
       .resize(2000, 1333)
       .toFormat("jpeg")
-      .jpeg({ quality: 95 })
+      .png({ quality: 95 })
       .toFile(`uploads/products/${imageCoverFileName}`);
     //save image to db
     req.body.imageCover = imageCoverFileName;
@@ -27,11 +27,11 @@ exports.resizeProductImages = asyncHandler(async (req, res, next) => {
     req.body.images = [];
     await Promise.all(
       req.files.images.map(async (img, index) => {
-        const imageName = `product-${uuidv4()}-${Date.now()}-${index + 1}.jpeg`;
+        const imageName = `product-${uuidv4()}-${Date.now()}-${index + 1}.png`;
         await sharp(img.buffer)
           .resize(2000, 1333)
           .toFormat("jpeg")
-          .jpeg({ quality: 95 })
+          .png({ quality: 95 })
           .toFile(`uploads/products/${imageName}`);
         //save image to db
         req.body.images.push(imageName);

@@ -10,12 +10,12 @@ const Brand = require("../models/brandModel");
 exports.uploadBrandImage = uploadSingleImage("image");
 //image processing
 exports.resizeImage = expressAsyncHandler(async (req, res, next) => {
-  const filename = `brand-${uuidv4()}-${Date.now()}.jpeg`;
+  const filename = `brand-${uuidv4()}-${Date.now()}.png`;
   if (req.file) {
     await sharp(req.file.buffer)
       .resize(600, 600)
       .toFormat("jpeg")
-      .jpeg({ quality: 95 })
+      .png({ quality: 95 })
       .toFile(`uploads/brands/${filename}`);
     req.body.image = filename;
   }
