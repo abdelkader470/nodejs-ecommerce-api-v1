@@ -59,13 +59,8 @@ const userSchema = new mongoose.Schema(
 );
 const setImageUrl = (doc) => {
   if (doc.profileImg) {
-    if (process.env.NODE_ENV === "development") {
-      const imageUrl = `${process.env.DEV_URL}/users/${doc.profileImg}`;
-      doc.profileImg = imageUrl;
-    } else {
-      const imageUrl = `${process.env.BASE_URL}/users/${doc.profileImg}`;
-      doc.profileImg = imageUrl;
-    }
+    const imageUrl = `${process.env.BASE_URL}/users/${doc.profileImg}`;
+    doc.profileImg = imageUrl;
   }
 };
 userSchema.post("init", (doc) => {
